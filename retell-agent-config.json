@@ -1,0 +1,268 @@
+{
+  "agent_name": "OcturionTech AI Receptionist",
+  "agent_type": "voice",
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "temperature": 0.3,
+    "system_prompt_url": "https://raw.githubusercontent.com/octuriontech/ai-receptionist/main/system_prompt.txt",
+    "system_prompt_file": "../3-system-prompt/system_prompt.txt"
+  },
+  "voice": {
+    "provider": "elevenlabs",
+    "voice_id": "21m00Tcm4TlvDq8ikWAM",
+    "model": "eleven_turbo_v2",
+    "speed": 1.0,
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "style": 0.3
+  },
+  "call_settings": {
+    "language": "en-US",
+    "max_duration_seconds": 600,
+    "end_call_silence_ms": 15000,
+    "background_noise_suppression": true,
+    "interruption_sensitivity": "medium",
+    "voicemail_detection": {
+      "enabled": true,
+      "timeout_ms": 5000,
+      "message_if_voicemail": "Thank you for calling OcturionTech. We are currently unavailable. Please leave your name, number, and a brief message, and we will return your call on the next business day."
+    },
+    "live_call_transfer": {
+      "enabled": true,
+      "transfer_number": "+44 3330410511",
+      "warm_transfer": true,
+      "context_summary": true
+    }
+  },
+  "function_tools": [
+    {
+      "name": "check_availability",
+      "description": "Check available appointment slots for a given date and service",
+      "server_url": "/api/check-availability",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "description": "Date (YYYY-MM-DD)" },
+          "service": { "type": "string", "description": "Service name" }
+        },
+        "required": ["date", "service"]
+      }
+    },
+    {
+      "name": "book_appointment",
+      "description": "Book an appointment for a customer",
+      "server_url": "/api/book-appointment",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "customer_name": { "type": "string" },
+          "customer_phone": { "type": "string" },
+          "customer_email": { "type": "string" },
+          "service": { "type": "string" },
+          "date": { "type": "string", "description": "YYYY-MM-DD" },
+          "time": { "type": "string", "description": "HH:MM" }
+        },
+        "required": ["customer_name", "customer_phone", "service", "date", "time"]
+      }
+    },
+    {
+      "name": "cancel_appointment",
+      "description": "Cancel an existing appointment",
+      "server_url": "/api/cancel-appointment",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "booking_id": { "type": "string" },
+          "reason": { "type": "string" }
+        },
+        "required": ["booking_id", "reason"]
+      }
+    },
+    {
+      "name": "reschedule_appointment",
+      "description": "Reschedule an appointment",
+      "server_url": "/api/reschedule-appointment",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "booking_id": { "type": "string" },
+          "new_date": { "type": "string", "description": "YYYY-MM-DD" },
+          "new_time": { "type": "string", "description": "HH:MM" }
+        },
+        "required": ["booking_id", "new_date", "new_time"]
+      }
+    },
+    {
+      "name": "create_contact",
+      "description": "Create a new contact in CRM",
+      "server_url": "/api/create-contact",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "phone": { "type": "string" },
+          "email": { "type": "string" },
+          "notes": { "type": "string" }
+        },
+        "required": ["name", "phone"]
+      }
+    },
+    {
+      "name": "find_contact",
+      "description": "Look up a contact by phone number",
+      "server_url": "/api/find-contact",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "phone": { "type": "string" }
+        },
+        "required": ["phone"]
+      }
+    },
+    {
+      "name": "send_email",
+      "description": "Send an email to a customer",
+      "server_url": "/api/send-email",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": { "type": "string" },
+          "subject": { "type": "string" },
+          "body": { "type": "string" }
+        },
+        "required": ["to", "subject", "body"]
+      }
+    },
+    {
+      "name": "send_sms",
+      "description": "Send an SMS message",
+      "server_url": "/api/send-sms",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["to", "message"]
+      }
+    },
+    {
+      "name": "create_quote",
+      "description": "Generate a price quote",
+      "server_url": "/api/create-quote",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "customer_name": { "type": "string" },
+          "customer_email": { "type": "string" },
+          "items": { "type": "array", "description": "Array of {description, quantity, price}" }
+        },
+        "required": ["customer_name", "items"]
+      }
+    },
+    {
+      "name": "qualify_lead",
+      "description": "Score a sales lead using BANT framework",
+      "server_url": "/api/qualify-lead",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "phone": { "type": "string" },
+          "budget": { "type": "string" },
+          "need": { "type": "string" },
+          "timeline": { "type": "string" }
+        },
+        "required": ["name", "need"]
+      }
+    },
+    {
+      "name": "create_ticket",
+      "description": "Create a support ticket",
+      "server_url": "/api/create-ticket",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "customer_name": { "type": "string" },
+          "issue": { "type": "string" },
+          "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"] }
+        },
+        "required": ["customer_name", "issue"]
+      }
+    },
+    {
+      "name": "transfer_call",
+      "description": "Transfer call to a human team member",
+      "server_url": "/api/transfer-call",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "department": { "type": "string" },
+          "context": { "type": "string", "description": "Conversation summary" },
+          "caller_phone": { "type": "string" }
+        },
+        "required": ["department", "context"]
+      }
+    },
+    {
+      "name": "send_voicemail",
+      "description": "Save a voicemail message",
+      "server_url": "/api/send-voicemail",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "caller_name": { "type": "string" },
+          "caller_phone": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["caller_name", "caller_phone", "message"]
+      }
+    },
+    {
+      "name": "get_business_hours",
+      "description": "Get business hours and holiday schedule",
+      "server_url": "/api/get-business-hours",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "description": "YYYY-MM-DD (optional)" }
+        }
+      }
+    }
+  ],
+  "voicemail_script": "Thank you for calling OcturionTech. We are currently unavailable. Please leave your name, phone number, and a brief message after the tone, and we will return your call on the next business day.",
+  "after_hours_script": "Thank you for calling OcturionTech. Our office is currently closed. Our hours are Monday to Friday, 9 AM to 5 PM. You can book a consultation on our website at octuriontech.com/contact, or leave a message and we will call you back.",
+  "greeting_script": "Thank you for calling OcturionTech! This is your AI Receptionist speaking. How can I help you today? You can ask about our services, book a consultation, request a quote, or get support.",
+  "transfer_script": "I understand you would like to speak with a team member. Let me transfer you now with a summary of what we've discussed.",
+  "end_call_script": "Thank you for choosing OcturionTech. Have a great day!",
+  "business_hours": {
+    "monday": "9:00 AM - 5:00 PM",
+    "tuesday": "9:00 AM - 5:00 PM",
+    "wednesday": "9:00 AM - 5:00 PM",
+    "thursday": "9:00 AM - 5:00 PM",
+    "friday": "9:00 AM - 5:00 PM",
+    "saturday": "Closed",
+    "sunday": "Closed"
+  },
+  "transfer_numbers": {
+    "primary": "+44 3330410511",
+    "sales": "+44 3330410511",
+    "support": "+44 3330410511",
+    "emergency": "+447495030300"
+  },
+  "services": [
+    "Web Development",
+    "Mobile App Development",
+    "Digital Marketing",
+    "Cyber Security",
+    "Cloud Solutions",
+    "IT Consulting",
+    "Software Development",
+    "E-commerce Solutions",
+    "Digital Transformation",
+    "AI & Machine Learning",
+    "Smart Home Solutions",
+    "Solar Energy Solutions"
+  ]
+}
